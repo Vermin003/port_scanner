@@ -76,13 +76,20 @@ async fn main() -> anyhow::Result<()> {
 
                 set.spawn(async move {
                     let _permit = permit;
-                    if scan_port(&host, port, timeout).await {
-                        println!("{}:{} is open", host, port);
-                    }
+                    let open = scan_port(&host, port, timeout).await;
+                    (port, open)
                 });
             }
 
-            set.join_all().await;
+            let mut results = set.join_all().await;
+            results.sort_by_key(|(port, _)| *port);
+
+            println!("\nScan results for {}:", args.host);
+            for (port, open) in results {
+                if open {
+                    println!("Port {} is open", port);
+                }
+            }
         }
     }
 
