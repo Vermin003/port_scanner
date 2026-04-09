@@ -38,6 +38,9 @@ struct Args {
     #[arg(short, long, default_value_t = 500)]
     timeout: u64,
 
+    #[arg(long, default_value_t = false)]
+    show_closed: bool,
+
     #[arg(short, long, default_value_t = 500)]
     max_concurrent: usize,
 }
@@ -86,8 +89,14 @@ async fn main() -> anyhow::Result<()> {
 
             println!("\nScan results for {}:", args.host);
             for (port, open) in results {
-                if open {
-                    println!("Port {} is open", port);
+                match open {
+                    true => {
+                        println!("{}:{} is open", args.host, port);
+                    }
+                    false if args.show_closed => {
+                        println!("{}:{} is closed", args.host, port);
+                    },
+                    _ => {}
                 }
             }
         }
