@@ -64,7 +64,7 @@ async fn scan_port(host: &str, port: u16, duration: u64) -> bool {
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
-    // Match statement to change behavior depending on whethere a single port is given versus a range
+    // Match statement to change behavior depending on whether a single port is given versus a range
     match args.ports {
         PortInput::Single(port) => {
             let open = scan_port(&args.host, port, args.timeout).await;
