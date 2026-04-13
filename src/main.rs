@@ -3,6 +3,7 @@ use tokio::net::TcpStream;
 use tokio::time::{timeout, Duration};
 use tokio::sync::Semaphore;
 use std::sync::Arc;
+use indicatif::ProgressBar;
 use tokio::task::JoinSet;
 
 #[derive(Clone)]
@@ -69,6 +70,7 @@ async fn main() -> anyhow::Result<()> {
             }
         }
         PortInput::Range(start, end) => {
+            let progress_bar = ProgressBar::new((end - start) as u64);
             let semaphore = Arc::new(Semaphore::new(args.max_concurrent));
             let mut set = JoinSet::new();
 
@@ -76,6 +78,8 @@ async fn main() -> anyhow::Result<()> {
                 let permit = semaphore.clone().acquire_owned().await;
                 let host = args.host.clone();
                 let timeout = args.timeout;
+
+                progress_bar.inc(1);
 
                 set.spawn(async move {
                     let _permit = permit;
@@ -92,13 +96,15 @@ async fn main() -> anyhow::Result<()> {
                 match open {
                     true => {
                         println!("{}:{} is open", args.host, port);
-                    }
+                    },
                     false if args.show_closed => {
                         println!("{}:{} is closed", args.host, port);
                     },
                     _ => {}
                 }
             }
+
+            progress_bar.finish_and_clear();
         }
     }
 
