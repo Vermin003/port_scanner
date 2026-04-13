@@ -6,12 +6,14 @@ use std::sync::Arc;
 use indicatif::ProgressBar;
 use tokio::task::JoinSet;
 
+// Create an enum for our port argument based on whether a single port (e.g. 10000) or a port range (100-10000) is given
 #[derive(Clone)]
 enum PortInput {
     Single(u16),
     Range(u16, u16),
 }
 
+// Handle our port argument
 impl std::str::FromStr for PortInput {
     type Err = anyhow::Error;
 
@@ -26,6 +28,7 @@ impl std::str::FromStr for PortInput {
     }
 }
 
+// Clap arguments
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
@@ -46,6 +49,7 @@ struct Args {
     max_concurrent: usize,
 }
 
+// Scan function using tokio
 async fn scan_port(host: &str, port: u16, duration: u64) -> bool {
     let addr = format!("{}:{}", host, port);
     let duration = Duration::from_millis(duration);
@@ -60,6 +64,7 @@ async fn scan_port(host: &str, port: u16, duration: u64) -> bool {
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
+    // Match statement to change behavior depending on whethere a single port is given versus a range
     match args.ports {
         PortInput::Single(port) => {
             let open = scan_port(&args.host, port, args.timeout).await;
